@@ -5,6 +5,9 @@ var graphic;
 var noteVal = 400;
 var t = new Date();
 
+var accelEvent;
+var orientEvent;
+
 var q_notes = [55.000, 61.735, 65.406, 73.416, 82.407, 87.307, 97.999, 110.000, 123.471, 130.813, 146.832, 164.814, 174.614, 195.998, 220.000,
 246.942, 261.626, 293.665, 329.628, 349.228, 391.995, 440.000, 493.883, 523.251, 587.330, 659.255, 698.456, 783.991, 880.000, 987.767, 1046.502, 1174.659, 1318.510, 1396.913, 1567.982, 1760.000, 1975.533, 2093.005, 2349.318, 2637.020, 2793.826, 3135.963, 3520.000]
 
@@ -144,15 +147,18 @@ Note.prototype.stop = function(){
 
 
 function Synth(){
+   this.activated =  false;
    this.notes = [220, 440, 880, 880*2];
 }
 
 Synth.prototype.touchActivate= function(e){
   var n = new Note(randArray(q_notes));
   n.play(0.2);
+   this.activated =  true;
 }
 
 Synth.prototype.touchDeactivate= function(e){
+   this.activated =  false;
 }
 
 
@@ -160,10 +166,16 @@ Synth.prototype.accelHandler = function(accel){
   var z = Math.abs(accel.acceleration.x) ;
   var change =map_range(z, 0, 20, 100,1000);
   var qchange = quantize(change, q_notes)
-  $("#logval").html(Math.round(qchange));
-  var n = new Note(qchange);
-  n.play(0.2);
-  //quantize pitch
+    $("#logval").html(Math.round(qchange));
+  var interval = (new Date() - t)/1000;
+  if(this.activated && ( interval >1/(z+1))){
+      var n = new Note(qchange);
+      var tiltFB = orientEvent.beta;
+      var filterval = map_range(tiltFB, -90, 90, 10000, 0);
+      n.setFilter(filterval);
+      n.play(0.2);
+      t = new Date();
+  }
 }
 
 var randArray = function(a){
@@ -180,9 +192,7 @@ var quantize = function(f, notes){
 }
 
 Synth.prototype.orientHandler = function(orient){
-  var tiltFB = orient.beta;
-  var filterval = map_range(tiltFB, -90, 90, 10000, 0);
-  this.note.setFilter(filterval);
+  orientEvent = orient;
 }
 
 
