@@ -67,6 +67,7 @@ var touchActivate = function(e){
 }
 
 var touchDeactivate = function(e){
+  e.preventDefault();
   synth.touchDeactivate(e);
   graphic.touchDeactivate(e);
 }
@@ -87,28 +88,27 @@ function map_range(value, low1, high1, low2, high2) {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-function Note(){
+function Note(f){
   this.filter;
   this.gain;
   this.osc;
   this.played = false;
   this.volume = 0.5;
+  this.pitch = f;
   this.buildSynth();
 }
 
 Note.prototype.buildSynth = function(){
   this.osc = context.createOscillator(); // Create sound source
   this.osc.type = 3; // Square wave
-  this.osc.frequency.value = 400;
+  this.osc.frequency.value = this.pitch;
 
   this.filter = context.createBiquadFilter();
   this.filter.type = 0;
   this.filter.frequency.value = 440;
 
   this.gain = context.createGainNode();
-  this.gain.gain.value = 0;
-
-
+  this.gain.gain.value = this.volume;
   this.osc.connect(this.filter); // Connect sound to output
   this.filter.connect(this.gain);
   this.gain.connect(context.destination);
@@ -127,42 +127,47 @@ Note.prototype.setVolume= function(v){
   this.volume = v;
 }
 
-Note.prototype.play = function(){
-  if(!this.played){
-    this.osc.noteOn(0); // Play instantly
-  }
-
-  this.played = true;
-  this.setVolume(this.volume);
-  return false;
+Note.prototype.play = function(dur){
+  this.osc.noteOn(0); // Play instantly
+  var that = this;
+  setTimeout(function(){
+  //this looks funny because start and stop don't work on mobile yet
+  //and noteOff doesnt allow new notes
+    that.setVolume(0);
+    that.osc.disconnect();
+  },dur*1000);
 }
 
 Note.prototype.stop = function(){
-  this.gain.gain.value = 0;
   return false;
 }
 
 
 function Synth(){
-  this.note = new Note();
+   this.notes = [220, 440, 880, 880*2];
 }
 
 Synth.prototype.touchActivate= function(e){
-  this.note.play();
+  var n = new Note(randArray(q_notes));
+  n.play(0.2);
 }
 
 Synth.prototype.touchDeactivate= function(e){
-  this.note.stop();
 }
 
 
 Synth.prototype.accelHandler = function(accel){
   var z = Math.abs(accel.acceleration.x) ;
-  var change =map_range(z, 0, 20, 200,1000);
-  var qchange = quantize(change, [220, 440, 880, 880*2])
+  var change =map_range(z, 0, 20, 100,1000);
+  var qchange = quantize(change, q_notes)
   $("#logval").html(Math.round(qchange));
+  var n = new Note(qchange);
+  n.play(0.2);
   //quantize pitch
-  this.note.setPitch(qchange);
+}
+
+var randArray = function(a){
+  return a[Math.round(Math.random()*(a.length-1))];
 }
 
 var quantize = function(f, notes){
