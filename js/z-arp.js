@@ -5,8 +5,11 @@ var graphic;
 var noteVal = 400;
 var t = new Date();
 
+
 var accelEvent;
 var orientEvent;
+var accelVal;
+var base_color = Math.random();
 
 var q_notes = [146.832, 164.814, 174.614, 195.998, 220.000,
 246.942, 261.626, 293.665, 329.628, 349.228, 391.995, 440.000, 493.883, 523.251, 587.330, 659.255, 698.456, 783.991, 880.000, 987.767, 1046.502, 1174.659, 1318.510, 1396.913, 1567.982, 1760.000, 1975.533, 2093.005, 2349.318, 2637.020, 2793.826, 3135.963, 3520.000]
@@ -24,6 +27,9 @@ var D_chord = [146.83,220.00,293.66];
 $(document).ready(function(){
   setup();
 });
+
+$("#press").css('top',$(window).height()/2);
+$("#logval").css('top',$(window).height()/4);
 
 var checkFeatureSupport = function(){
   try{
@@ -209,13 +215,18 @@ function Synth(){
    this.activated =  false;
    this.notes = [220, 440, 880, 880*2];
    this.drones = [];
+   this.droneRoot = randArray([146.83, 196, 220.00]);
 }
 
 Synth.prototype.touchActivate= function(e){
   var n = new Pluck(146.83*2);
   n.play();
-  this.drones[0]= new Drone(146.83/2);
-  this.drones[1]= new Drone(146.83);
+  this.drones.forEach(function(d){
+    d.stop();
+  });
+  this.drones = [];
+  this.drones[0]= new Drone(this.droneRoot/2);
+  this.drones[1]= new Drone(this.droneRoot);
   this.activated =  true;
 }
 
@@ -233,7 +244,7 @@ Synth.prototype.accelHandler = function(accel){
   var y = Math.abs(accel.acceleration.y) ;
   var z = Math.abs(accel.acceleration.z) ;
 
-  var accelVal = Math.max(x,y,z);
+  accelVal = Math.max(x,y,z);
 
   var change =map_range(accelVal, 0, 15, 100,1500);
   var qchange = quantize(change, q_notes)
@@ -250,7 +261,7 @@ Synth.prototype.accelHandler = function(accel){
   }
 
 
-  var droneFilter = map_range(accelVal, 0, 20, 150, 10000);
+  var droneFilter = map_range(accelVal, 0, 20, 100, 10000);
   this.drones.forEach(function(d){
 
       d.setFilter(droneFilter);
@@ -285,17 +296,19 @@ Graphic.prototype.touchActivate = function(e){
   this.activated = true;
   $fun.css("background-color", "lime");
   $fun.css("background-color", this.background_color);
+    $("#press").html("SHAKE");
 }
 
 Graphic.prototype.touchDeactivate = function(e){
   this.activated = false;
   $fun.css("background-color","white");
+    $("#press").html("PRESS");
 }
 
 Graphic.prototype.accelHandler = function(accel){
- var x = accel.acceleration.x;
- var h = x/60.0;
- var c  = HSVtoRGB(h,1,1);
+ var h = accelVal;
+ var h= map_range(accelVal, 0, 20, 0, 0.2);
+ var c  = HSVtoRGB(h+base_color,1,1);
  this.background_color = "rgb("+c.r+","+c.g+","+c.b+")" ;
  if(this.activated){
    $fun.css("background-color", this.background_color);
