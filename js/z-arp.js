@@ -8,8 +8,10 @@ var t = new Date();
 var accelEvent;
 var orientEvent;
 
-var q_notes = [55.000, 61.735, 65.406, 73.416, 82.407, 87.307, 97.999, 110.000, 123.471, 130.813, 146.832, 164.814, 174.614, 195.998, 220.000,
+var q_notes = [146.832, 164.814, 174.614, 195.998, 220.000,
 246.942, 261.626, 293.665, 329.628, 349.228, 391.995, 440.000, 493.883, 523.251, 587.330, 659.255, 698.456, 783.991, 880.000, 987.767, 1046.502, 1174.659, 1318.510, 1396.913, 1567.982, 1760.000, 1975.533, 2093.005, 2349.318, 2637.020, 2793.826, 3135.963, 3520.000]
+
+var D_chord = [146.83,220.00,293.66];
 
 /**
  *
@@ -99,6 +101,7 @@ function Note(f){
   this.volume = 0.5;
   this.pitch = f;
   this.buildSynth();
+  this.duration = 1;
 }
 
 Note.prototype.buildSynth = function(){
@@ -112,6 +115,7 @@ Note.prototype.buildSynth = function(){
 
   this.gain = context.createGainNode();
   this.gain.gain.value = this.volume;
+  //decay
   this.osc.connect(this.filter); // Connect sound to output
   this.filter.connect(this.gain);
   this.gain.connect(context.destination);
@@ -131,7 +135,9 @@ Note.prototype.setVolume= function(v){
 }
 
 Note.prototype.play = function(dur){
+  var dur = this.duration || dur;
   this.osc.noteOn(0); // Play instantly
+  this.gain.gain.setTargetValueAtTime(0, 0, 0.3);
   var that = this;
   setTimeout(function(){
   //this looks funny because start and stop don't work on mobile yet
@@ -152,8 +158,8 @@ function Synth(){
 }
 
 Synth.prototype.touchActivate= function(e){
-  var n = new Note(randArray(q_notes));
-  n.play(0.2);
+  var n = new Note(146.83*2);
+  n.play();
    this.activated =  true;
 }
 
@@ -164,16 +170,16 @@ Synth.prototype.touchDeactivate= function(e){
 
 Synth.prototype.accelHandler = function(accel){
   var z = Math.abs(accel.acceleration.x) ;
-  var change =map_range(z, 0, 20, 100,1000);
+  var change =map_range(z, 0, 15, 100,1000);
   var qchange = quantize(change, q_notes)
     $("#logval").html(Math.round(qchange));
   var interval = (new Date() - t)/1000;
-  if(this.activated && ( interval >1/(z+1))){
+  if(this.activated && ( interval >1/(z+5))){
       var n = new Note(qchange);
       var tiltFB = orientEvent.beta;
-      var filterval = map_range(tiltFB, -90, 90, 10000, 0);
+      var filterval = map_range(tiltFB, -40, 90, 0, 10000);
       n.setFilter(filterval);
-      n.play(0.2);
+      n.play();
       t = new Date();
   }
 }
