@@ -152,29 +152,95 @@ Pluck.prototype.stop = function(){
 }
 
 
+
+function Drone(f){
+  this.filter;
+  this.gain;
+  this.osc;
+  this.played = false;
+  this.volume = 0.3;
+  this.pitch = f;
+  this.buildSynth();
+  this.play();
+}
+
+Drone.prototype.buildSynth = function(){
+  this.osc = context.createOscillator(); // Create sound source
+  this.osc.type = 2;
+  this.osc.frequency.value = this.pitch;
+
+  this.filter = context.createBiquadFilter();
+  this.filter.type = 0;
+  this.filter.frequency.value = 440;
+
+  this.gain = context.createGainNode();
+  this.gain.gain.value = this.volume;
+  //decay
+  this.osc.connect(this.filter); // Connect sound to output
+  this.filter.connect(this.gain);
+  this.gain.connect(context.destination);
+}
+
+Drone.prototype.setPitch = function(p){
+  this.osc.frequency.value = p;
+}
+
+Drone.prototype.setFilter = function(f){
+  this.filter.frequency.value = f;
+}
+
+Drone.prototype.setVolume= function(v){
+  this.gain.gain.value = v;
+  this.volume = v;
+}
+
+Drone.prototype.play = function(){
+  this.osc.noteOn(0); // Play instantly
+}
+
+Drone.prototype.stop = function(){
+    this.setVolume(0);
+    this.osc.disconnect();
+    return false;
+}
+
+
 function Synth(){
    this.activated =  false;
    this.notes = [220, 440, 880, 880*2];
+   this.drones = [];
 }
 
 Synth.prototype.touchActivate= function(e){
   var n = new Pluck(146.83*2);
   n.play();
-   this.activated =  true;
+  this.drones[0]= new Drone(146.83/2);
+  this.drones[1]= new Drone(146.83);
+  this.activated =  true;
 }
 
 Synth.prototype.touchDeactivate= function(e){
    this.activated =  false;
+
+  this.drones.forEach(function(d){
+    d.stop();
+  });
 }
 
 
 Synth.prototype.accelHandler = function(accel){
-  var z = Math.abs(accel.acceleration.x) ;
-  var change =map_range(z, 0, 15, 100,1000);
+  var x = Math.abs(accel.acceleration.x) ;
+  var y = Math.abs(accel.acceleration.y) ;
+  var z = Math.abs(accel.acceleration.z) ;
+
+  var accelVal = Math.max(x,y,z);
+
+  var change =map_range(accelVal, 0, 15, 100,1500);
   var qchange = quantize(change, q_notes)
     $("#logval").html(Math.round(qchange));
   var interval = (new Date() - t)/1000;
-  if(this.activated && ( interval >1/(z+5))){
+
+  if(this.activated && ( interval >1/(accelVal+5))){
       var n = new Pluck(qchange);
       var tiltFB = orientEvent.beta;
       var filterval = map_range(tiltFB, -40, 90, 0, 10000);
@@ -182,6 +248,14 @@ Synth.prototype.accelHandler = function(accel){
       n.play();
       t = new Date();
   }
+
+
+  var droneFilter = map_range(accelVal, 0, 20, 150, 10000);
+  this.drones.forEach(function(d){
+
+      d.setFilter(droneFilter);
+  });
+
 }
 
 var randArray = function(a){
