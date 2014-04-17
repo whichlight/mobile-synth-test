@@ -93,7 +93,7 @@ function map_range(value, low1, high1, low2, high2) {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
-function Note(f){
+function Pluck(f){
   this.filter;
   this.gain;
   this.osc;
@@ -104,7 +104,7 @@ function Note(f){
   this.duration = 1;
 }
 
-Note.prototype.buildSynth = function(){
+Pluck.prototype.buildSynth = function(){
   this.osc = context.createOscillator(); // Create sound source
   this.osc.type = 3; // Square wave
   this.osc.frequency.value = this.pitch;
@@ -121,20 +121,20 @@ Note.prototype.buildSynth = function(){
   this.gain.connect(context.destination);
 }
 
-Note.prototype.setPitch = function(p){
+Pluck.prototype.setPitch = function(p){
   this.osc.frequency.value = p;
 }
 
-Note.prototype.setFilter = function(f){
+Pluck.prototype.setFilter = function(f){
   this.filter.frequency.value = f;
 }
 
-Note.prototype.setVolume= function(v){
+Pluck.prototype.setVolume= function(v){
   this.gain.gain.value = v;
   this.volume = v;
 }
 
-Note.prototype.play = function(dur){
+Pluck.prototype.play = function(dur){
   var dur = this.duration || dur;
   this.osc.noteOn(0); // Play instantly
   this.gain.gain.setTargetValueAtTime(0, 0, 0.3);
@@ -147,7 +147,7 @@ Note.prototype.play = function(dur){
   },dur*1000);
 }
 
-Note.prototype.stop = function(){
+Pluck.prototype.stop = function(){
   return false;
 }
 
@@ -158,7 +158,7 @@ function Synth(){
 }
 
 Synth.prototype.touchActivate= function(e){
-  var n = new Note(146.83*2);
+  var n = new Pluck(146.83*2);
   n.play();
    this.activated =  true;
 }
@@ -175,7 +175,7 @@ Synth.prototype.accelHandler = function(accel){
     $("#logval").html(Math.round(qchange));
   var interval = (new Date() - t)/1000;
   if(this.activated && ( interval >1/(z+5))){
-      var n = new Note(qchange);
+      var n = new Pluck(qchange);
       var tiltFB = orientEvent.beta;
       var filterval = map_range(tiltFB, -40, 90, 0, 10000);
       n.setFilter(filterval);
