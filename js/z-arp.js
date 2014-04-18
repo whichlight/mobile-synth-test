@@ -254,7 +254,7 @@ Synth.prototype.accelHandler = function(accel){
   if(this.activated && ( interval >1/(accelVal+5))){
       var n = new Pluck(qchange);
       var tiltFB = orientEvent.beta;
-      var filterval = map_range(tiltFB, -40, 90, 0, 10000);
+      var filterval = map_range(tiltFB, -90, 90, 0, 10000);
       n.setFilter(filterval);
       n.play();
       t = new Date();
@@ -296,7 +296,7 @@ Graphic.prototype.touchActivate = function(e){
   this.activated = true;
   $fun.css("background-color", "lime");
   $fun.css("background-color", this.background_color);
-    $("#press").html("SHAKE");
+    $("#press").html("MOVE");
 }
 
 Graphic.prototype.touchDeactivate = function(e){
