@@ -153,7 +153,7 @@ Synth.prototype.touchDeactivate= function(e){
 
 Synth.prototype.accelHandler = function(accel){
  var x = accel.accelerationIncludingGravity.x;
- this.note.setPitch(200 + x*50);
+ this.note.setPitch(200 + x*100);
 }
 
 Synth.prototype.orientHandler = function(orient){
