@@ -16,3 +16,7 @@ body{
   margin:0px;
 }
 
+p{
+  font-size: 100px;
+  font-family: "helvetica";
+}
