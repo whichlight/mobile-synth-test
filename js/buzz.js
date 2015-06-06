@@ -92,14 +92,14 @@ function Note(){
 
 Note.prototype.buildSynth = function(){
   this.osc = context.createOscillator(); // Create sound source
-  this.osc.type = 3; // Square wave
+  this.osc.type = "square"; // Square wave
   this.osc.frequency.value = 400;
 
   this.filter = context.createBiquadFilter();
   this.filter.type = 0;
   this.filter.frequency.value = 440;
 
-  this.gain = context.createGainNode();
+  this.gain = context.createGain();
   this.gain.gain.value = 0;
 
 
@@ -123,11 +123,11 @@ Note.prototype.setVolume= function(v){
 Note.prototype.play = function(e){
   e.preventDefault();
   if(!this.played){
-    this.osc.noteOn(0); // Play instantly
+    this.osc.start(0); // Play instantly
   }
 
   this.played = true;
-  this.setVolume(0.5);
+  this.setVolume(0.9);
   return false;
 }
 
