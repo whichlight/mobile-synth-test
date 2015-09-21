@@ -4,6 +4,7 @@ var synth;
 var graphic;
 
 
+
 /**
  *
  accel events and touch mapped to Synth and Graphic
@@ -20,6 +21,21 @@ var checkFeatureSupport = function(){
   try{
     window.AudioContext = window.AudioContext||window.webkitAudioContext;
     context = new AudioContext();
+
+    //ios fix from p5.sound
+    var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false );
+    if (iOS) {
+        $("#fun").prepend("<p id='initialize'>tap to initialize</p>");
+        window.addEventListener('touchend', function() {
+            var buffer = context.createBuffer(1, 1, 22050);
+            var source = context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(context.destination);
+            source.start(0);
+            $("#initialize").remove();
+        }, false);
+    }
+
   }
   catch (err){
     alert('web audio not supported');
@@ -96,7 +112,7 @@ Note.prototype.buildSynth = function(){
   this.osc.frequency.value = 400;
 
   this.filter = context.createBiquadFilter();
-  this.filter.type = 0;
+  this.filter.type = "lowpass";
   this.filter.frequency.value = 440;
 
   this.gain = context.createGain();
