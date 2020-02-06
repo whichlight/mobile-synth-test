@@ -13,6 +13,10 @@ var graphic;
  *
  */
 
+ if (location.protocol != 'https:') {
+   location.href = 'https:' + window.location.href.substring(window.location.protocol.length);
+  }
+
 $(document).ready(function(){
   setup();
 });
@@ -41,10 +45,36 @@ var checkFeatureSupport = function(){
     alert('web audio not supported');
   }
 
-  if (!window.DeviceMotionEvent) {
-    alert("DeviveMotionEvent not supported");
-  }
+
+
+  document.getElementById('fun').onclick = function(){
+
+  if (typeof(DeviceMotionEvent) !== 'undefined' && typeof(DeviceMotionEvent.requestPermission) === 'function') {
+           DeviceMotionEvent.requestPermission()
+           .then(response => {
+             if (response == 'granted') {
+               window.addEventListener('devicemotion', (e) => {})
+             }
+           })
+       .catch(console.error)
+       }else {
+           alert('Motion is not supported on this device.');
+       }
+
+  };
+
+
+
 }
+
+
+
+var requestT = function(){ 
+
+       
+}
+
+
 
 
 var setup = function(){
@@ -54,12 +84,16 @@ var setup = function(){
   $fun = $("#fun");
 
   //add events
+  $fun.bind("touchend", requestT);
   $fun.bind("mousedown", touchActivate);
   $fun.bind("mouseup", touchDeactivate);
   $fun.bind("touchstart", touchActivate);
   $fun.bind("touchend", touchDeactivate);
 
+
+
   if (window.DeviceMotionEvent) {
+
     window.addEventListener('devicemotion', deviceMotionHandler, false);
   }
 
@@ -71,10 +105,10 @@ var setup = function(){
 
 
 //touch and gesture mappings to synth and graphic
-//
 var touchActivate = function(e){
   synth.touchActivate(e);
   graphic.touchActivate(e);
+
 }
 
 var touchDeactivate = function(e){
