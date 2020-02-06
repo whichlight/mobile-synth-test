@@ -47,7 +47,13 @@ var checkFeatureSupport = function(){
 
 
 
-  document.getElementById('fun').onclick = function(){
+
+
+}
+
+
+
+var requestT = function(){ 
 
   if (typeof(DeviceMotionEvent) !== 'undefined' && typeof(DeviceMotionEvent.requestPermission) === 'function') {
            DeviceMotionEvent.requestPermission()
@@ -59,19 +65,7 @@ var checkFeatureSupport = function(){
        .catch(console.error)
        }else {
            alert('Motion is not supported on this device.');
-       }
-
-  };
-
-
-
-}
-
-
-
-var requestT = function(){ 
-
-       
+       }       
 }
 
 
@@ -89,6 +83,8 @@ var setup = function(){
   $fun.bind("mouseup", touchDeactivate);
   $fun.bind("touchstart", touchActivate);
   $fun.bind("touchend", touchDeactivate);
+
+  document.getElementById('fun').onclick = requestT;
 
 
 
