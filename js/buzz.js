@@ -2,6 +2,8 @@ var context;
 var $fun;
 var synth;
 var graphic;
+var logval; 
+var logging = false; 
 
 
 
@@ -89,6 +91,11 @@ var setup = function(){
   synth = new Synth();
   graphic = new Graphic();
   $fun = $("#fun");
+  logval = document.getElementById("logval");
+  if(!logging){
+    logval.remove();
+  }
+
 
   //add events
   $fun.bind("touchend", requestT);
@@ -157,7 +164,21 @@ Note.prototype.buildSynth = function(){
 }
 
 Note.prototype.setPitch = function(p){
-  this.osc.frequency.value = p;
+
+  //pitch smoothing
+  let oldval = this.osc.frequency.value; 
+  let newval = lerp(oldval, p,0.2);
+
+  // some issue with this.osc.frequency.value = p;
+  this.osc.frequency.setValueAtTime(newval, context.currentTime);
+  if(logging){
+    logval.textContent = newval;
+  }
+
+}
+
+function lerp (start, end, amt){
+  return (1-amt)*start+amt*end
 }
 
 Note.prototype.setFilter = function(f){
